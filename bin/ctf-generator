@@ -1,0 +1,31 @@
+#!/usr/bin/env cato 2.1
+
+import AppKit
+import Commander
+import Contentful
+import PathKit
+import Stencil
+
+// TODO: Query validations using CMA
+
+func generateModelStructs(spaceId: String, token: String) {
+  print(Configuration().userAgent)
+
+  let client = ContentfulClient(spaceIdentifier: spaceId, accessToken: token)
+  client.fetchContentTypes { (result) in
+    if let types = result.value {
+      print(types)
+    }
+
+    exit(0)
+  }
+}
+
+NSApplicationLoad()
+
+print(NSProcessInfo.processInfo().arguments)
+
+command(Argument<String>("Space ID"),
+        Argument<String>("Access Token"), closure: generateModelStructs).run()
+
+NSApp.run()
