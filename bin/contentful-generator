@@ -68,7 +68,7 @@ extension Process {
     }
 }
 
-func generateModelStructs(spaceId: String, _ token: String) {
+func generateModelStructs(spaceId: String, _ token: String, output: String) {
   let client = ContentfulClient(spaceIdentifier: spaceId, accessToken: token)
   client.fetchContentTypes { (result) in
     switch result {
@@ -84,7 +84,7 @@ func generateModelStructs(spaceId: String, _ token: String) {
         }
 
         do {
-          try render(item.name, fields)
+          try render(item.name, fields, output: output)
         } catch let error {
           print("Could not generate template for \(item.name): \(error)")
         }
@@ -97,20 +97,21 @@ func generateModelStructs(spaceId: String, _ token: String) {
   }
 }
 
-func render(name: String, _ fields: [[String:String]]) throws {
+func render(name: String, _ fields: [[String:String]], output: String) throws {
     let template = try Template(path: Process.directory + "../templates/entry.swift")
     let context = Context(dictionary: [
         "className": name,
         "fields": fields
     ])
 
-    let destinationFile = Path("\(name).swift")
+    let destinationFile = Path(output) + Path("\(name).swift")
     try destinationFile.write(try template.render(context))
 }
 
 command(Argument<String>("Space ID"),
-        Argument<String>("Access Token")) { (spaceId, token) in
+        Argument<String>("Access Token"),
+        Option("output", ".", description: "Output directory for files.")) { (spaceId, token, out) in
           NSApplicationLoad()
-          generateModelStructs(spaceId, token)
+          generateModelStructs(spaceId, token, output: out)
           NSApp.run()
         }.run()
