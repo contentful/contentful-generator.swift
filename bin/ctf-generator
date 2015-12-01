@@ -3,29 +3,114 @@
 import AppKit
 import Commander
 import Contentful
+import CoreLocation
 import PathKit
 import Stencil
 
 // TODO: Query validations using CMA
 
-func generateModelStructs(spaceId: String, token: String) {
-  print(Configuration().userAgent)
+extension FieldType {
+  func toSwiftType() -> String? {
+    switch self {
+      case .Asset:
+        return "\(Asset.self)"
+      case .Date:
+        return "\(NSDate.self)"
+      case .Entry:
+        return "\(Entry.self)"
+      case .Integer:
+        return "\(Int.self)"
+      case .Location:
+        return "\(CLLocationCoordinate2D.self)"
+      case .Symbol, .Text:
+        return "\(String.self)"
+      default:
+        return nil
+    }
+  }
+}
 
+extension Field {
+  var fieldError: String { return "Unhandled field `\(identifier)` of" }
+  var itemTypeError: String { return "\(fieldError) item type `\(itemType)`" }
+
+  func toSwiftType() -> String {
+    switch type {
+      case .Array:
+        if let itemType = itemType.toSwiftType() {
+          return "[\(itemType)]"
+        }
+
+        fatalError(itemTypeError)
+      case .Link:
+        if let swiftType = itemType.toSwiftType() {
+          return swiftType
+        }
+
+        fatalError(itemTypeError)
+      default:
+        if let swiftType = type.toSwiftType() {
+          return swiftType
+        }
+    }
+
+    fatalError("\(fieldError) type `\(type)`")
+  }
+}
+
+extension Process {
+    static var directory: Path {
+      if let executablePath = Process.arguments.first {
+        return Path(executablePath).parent().absolute()
+      }
+
+      return Path.current
+    }
+}
+
+func generateModelStructs(spaceId: String, _ token: String) {
   let client = ContentfulClient(spaceIdentifier: spaceId, accessToken: token)
   client.fetchContentTypes { (result) in
-    if let types = result.value {
-      print(types)
+    switch result {
+    case let .Success(types):
+      for item in types.items {
+        var fields = [[String:String]]()
+
+        for field in item.fields {
+          fields.append([
+            "name": field.identifier,
+            "type": field.toSwiftType()
+          ])
+        }
+
+        do {
+          try render(item.name, fields)
+        } catch let error {
+          print("Could not generate template for \(item.name): \(error)")
+        }
+      }
+    case let .Error(error):
+      print(error)
     }
 
     exit(0)
   }
 }
 
-NSApplicationLoad()
+func render(name: String, _ fields: [[String:String]]) throws {
+    let template = try Template(path: Process.directory + "../templates/entry.swift")
+    let context = Context(dictionary: [
+        "className": name,
+        "fields": fields
+    ])
 
-print(NSProcessInfo.processInfo().arguments)
+    let destinationFile = Path("\(name).swift")
+    try destinationFile.write(try template.render(context))
+}
 
 command(Argument<String>("Space ID"),
-        Argument<String>("Access Token"), closure: generateModelStructs).run()
-
-NSApp.run()
+        Argument<String>("Access Token")) { (spaceId, token) in
+          NSApplicationLoad()
+          generateModelStructs(spaceId, token)
+          NSApp.run()
+        }.run()
