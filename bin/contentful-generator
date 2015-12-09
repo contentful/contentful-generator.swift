@@ -72,6 +72,11 @@ extension Process {
     }
 }
 
+private func sanitize(var string: String) -> String {
+  string = string.stringByReplacingOccurrencesOfString("-", withString: "_")
+  return string.stringByReplacingOccurrencesOfString(" ", withString: "_")
+}
+
 func generateModelStructs(spaceId: String, _ token: String, output: String) {
   let client = ContentfulClient(spaceIdentifier: spaceId, accessToken: token)
   client.fetchContentTypes { (result) in
@@ -88,7 +93,7 @@ func generateModelStructs(spaceId: String, _ token: String, output: String) {
         }
 
         do {
-          try render(item.name, fields, output: output)
+          try render(sanitize(item.name), fields, output: output)
         } catch let error {
           print("Could not generate template for \(item.name): \(error)")
         }
