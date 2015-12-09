@@ -24,6 +24,8 @@ extension FieldType {
         return "\(Int.self)"
       case .Location:
         return "\(CLLocationCoordinate2D.self)"
+      case .Number:
+        return "\(Float.self)"
       case .Symbol, .Text:
         return "\(String.self)"
       default:
