@@ -1,6 +1,7 @@
 #!/usr/bin/env cato 2.1
 
 import AppKit
+import Chores
 import Commander
 import Contentful
 import CoreLocation
@@ -86,6 +87,11 @@ func generateModelStructs(spaceId: String, _ token: String, output: String) {
         var fields = [[String:String]]()
 
         for field in item.fields {
+          if field.type == .Date || field.type == .Location {
+            print("\(field.type) values are not yet supported.")
+            continue
+          }
+
           fields.append([
             "name": field.identifier,
             "type": field.toSwiftType()
@@ -115,6 +121,11 @@ func render(name: String, _ fields: [[String:String]], output: String) throws {
 
     let destinationFile = Path(output) + Path("\(name).swift")
     try destinationFile.write(try template.render(context))
+    // FIXME: Shouldn't shell out to `sed` here
+    let result = >["sed", "-i''", "s/,)/)/", destinationFile.description]
+    if result.stdout.characters.count > 0 || result.stderr.characters.count > 0 {
+      print("\(result.stdout) \(result.stderr)")
+    }
 }
 
 command(Argument<String>("Space ID"),
