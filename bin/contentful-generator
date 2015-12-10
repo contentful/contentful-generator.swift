@@ -88,7 +88,7 @@ func generateModelStructs(spaceId: String, _ token: String, output: String) {
 
         for field in item.fields {
           if field.type == .Date || field.type == .Location {
-            print("\(field.type) values are not yet supported.")
+            print("\(field.type) values are not yet supported (\(item.name).\(field.identifier)).")
             continue
           }
 
