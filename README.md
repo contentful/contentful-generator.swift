@@ -52,7 +52,7 @@ client.fetchEntry("doge").1.next { let doge = Doge.fromEntry($0) }
 
 ## Installation
 
-The script requires `cato` for assembling its dependencies, please install it using:
+The script requires [`cato`][4] for assembling its dependencies, please install it using:
 
 ```bash
 $ gem install cocoapods cocoapods-rome
@@ -76,3 +76,4 @@ Copyright (c) 2015 Contentful GmbH. See LICENSE for further details.
 [1]: https://www.contentful.com
 [2]: http://cocoapods.org
 [3]: https://github.com/contentful/contentful.swift
+[4]: https://github.com/neonichu/cato
