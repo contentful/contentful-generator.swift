@@ -6,6 +6,7 @@ chswift 2.1
 FRAMEWORKS=$HOME/.📦/contentful-generator/Rome
 
 mkdir -p out
+rm -f out/*
 
 ./bin/contentful-generator cfexampleapi b4c0n73n7fu1 --output out
 
