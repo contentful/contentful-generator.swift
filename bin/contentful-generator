@@ -130,7 +130,7 @@ func render(name: String, _ fields: [[String:String]], output: String) throws {
     let destinationFile = Path(output) + Path("\(name).swift")
     try destinationFile.write(try template.render(context))
     replaceInFile("s/,)/)/", destinationFile)
-    replaceInFile("s/: \\(.*\\) as? \\[\\(.*\\)\\]/: (\\1 as? [Any])?.map { $0 as? \\2 }.flatMap { $0 }/", destinationFile)
+    replaceInFile("s/: \\(.*\\) as? \\[\\(.*\\)\\]/: (\\1 as? NSArray)?.map { $0 as? \\2 }.flatMap { $0 }/", destinationFile)
 }
 
 command(Argument<String>("Space ID"),
